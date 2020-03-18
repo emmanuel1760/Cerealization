@@ -27,6 +27,7 @@ namespace Cerealization
             //MakeHeader(t,seq);
         }
 
+        /// Cerealization Functions
         public byte[] CerealizeMSG(byte t, Int32 seq, Message obj)
         {
             MakeHeader(t, seq);
@@ -57,6 +58,49 @@ namespace Cerealization
             return getMSG();
         }
 
+        /// Construction Functions
+        private void MakeHeader(byte t, Int32 seq)
+        {
+            byte[] type = new byte[1];
+            type[0] = t;
+
+            this.header = Combine(type, BitConverter.GetBytes(seq));
+        }
+        public static byte[] Combine(byte[] first, byte[] second)
+        {
+            byte[] ret = new byte[first.Length + second.Length];
+            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
+            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
+            return ret;
+        }
+        public static byte[] Combine(byte[] first, byte[] second, byte[] third)
+        {
+            byte[] ret = new byte[first.Length + second.Length + third.Length];
+            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
+            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
+            Buffer.BlockCopy(third, 0, ret, first.Length + second.Length,
+                             third.Length);
+            return ret;
+        }
+        public static byte[] Combine(byte[] first, byte[] second, byte[] third, byte[] fourth)
+        {
+            byte[] ret = new byte[first.Length + second.Length + third.Length + fourth.Length];
+            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
+            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
+            Buffer.BlockCopy(third, 0, ret, first.Length + second.Length,
+                             third.Length);
+            Buffer.BlockCopy(third, 0, ret, first.Length + second.Length + third.Length,
+                              fourth.Length);
+            return ret;
+        }
+        private void FinalBytes()
+        {
+            Int64 msgSize = header.Length + body.Length + 8;
+            msgBytes = BitConverter.GetBytes(msgSize);
+            data = Combine(msgBytes, header, body);
+        }
+
+        /// Bit Conversion Functions ///
         public void IntByte(Int16 num)
         {
             byte[] bytes = BitConverter.GetBytes(num);
@@ -76,58 +120,15 @@ namespace Cerealization
 
         public byte[] FByte(float num)
         {
-            num = (Int32)(num * 1000);
-            byte[] bytes = BitConverter.GetBytes(num);
+            Int32 numi = (Int32)(num * 1000);
+            byte[] bytes = BitConverter.GetBytes(numi);
             //Combine(body, bytes);
             return bytes;
         }
 
-        public static byte[] Combine(byte[] first, byte[] second)
-        {
-            byte[] ret = new byte[first.Length + second.Length];
-            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
-            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
-            return ret;
-        }
-
-        public static byte[] Combine(byte[] first, byte[] second, byte[] third)
-        {
-            byte[] ret = new byte[first.Length + second.Length + third.Length];
-            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
-            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
-            Buffer.BlockCopy(third, 0, ret, first.Length + second.Length,
-                             third.Length);
-            return ret;
-        }
-
-        public static byte[] Combine(byte[] first, byte[] second, byte[] third, byte[] fourth)
-        {
-            byte[] ret = new byte[first.Length + second.Length + third.Length + fourth.Length];
-            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
-            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
-            Buffer.BlockCopy(third, 0, ret, first.Length + second.Length,
-                             third.Length);
-            Buffer.BlockCopy(third, 0, ret, first.Length + second.Length + third.Length,
-                              fourth.Length);
-            return ret;
-        }
-
-        private void MakeHeader(byte t, Int32 seq)
-        {
-            byte[] type = new byte[1];
-            type[0] = t;
-
-            this.header = Combine(type, BitConverter.GetBytes(seq));
-        }
-
-        private void FinalBytes()
-        {
-            Int64 msgSize = header.Length + body.Length + 8;
-            msgBytes = BitConverter.GetBytes(msgSize);
-            data = Combine(msgBytes, header, body);
-        }
-
-
+        
+        /// Deserealizer Functions ///
+        /// 
         //get header info and sends to correct parse function with msg parameters
         public Message ReadMessage(byte[] recMSG)
         {

@@ -37,15 +37,14 @@ namespace Cerealization
             return null;
         }
 
-        public void writeMsg(String data)
+        public byte[] stringByte(String data)
         {
-            msg = Encoding.ASCII.GetBytes(data);
+            return Encoding.ASCII.GetBytes(data);
         }
 
-        public String byteToString(byte[] bytes)
+        public String byteString(byte[] bytes)
         {
-            String str = Encoding.ASCII.GetString(bytes);
-            return str;
+            return Encoding.ASCII.GetString(bytes);
         }
 
         public byte[] GetMessage()
