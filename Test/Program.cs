@@ -13,7 +13,7 @@ namespace Test
             Console.WriteLine("Hello World!");
 
             //Cerealize cc = new Cerealize();
-            Message msg = new Message();
+            MoveMsg msg = new MoveMsg(2);
 
             //Mensaje MSG = new Mensaje();
             Translate T = new Translate();
@@ -21,16 +21,14 @@ namespace Test
             Console.ReadKey();
 
             msg.msgType = 7;
-            msg.from = 2;
-            msg.to = 1;
-            msg.pos = new Vector3(5.5f);
-            msg.playerRotation = new Quaternion(msg.pos, 7.4f);
-            msg.cameraRotation = new Quaternion(msg.pos, 3.8f);
+            msg.pos = new Vector3(5.555555f);
+            msg.playerRotation = new Quaternion(msg.pos, 7.444444f);
+            msg.cameraRotation = new Quaternion(msg.pos, 3.888888f);
             byte[] bmsg = T.SerializeMSG(msg);
-            Message tmsg = T.DeserializeMSG(bmsg);
+            MoveMsg tmsg = T.DeserializeMMSG(bmsg);
 
             Console.WriteLine("{0} {1} {2} {3:0.####} {4:0.####} {5:0.####} ",
-                tmsg.msgType, tmsg.from, tmsg.to, tmsg.pos, tmsg.playerRotation, tmsg.cameraRotation);
+                tmsg.msgType, tmsg.from, tmsg.pos, tmsg.playerRotation, tmsg.cameraRotation);
 
             //Console.WriteLine("{0:0.####} {1} {2}\n", MSG.pos, MSG.word, MSG.letter);
             //byte[] msg = T.SerializeMSG(MSG);
@@ -75,21 +73,83 @@ namespace Test
         }
 
         // Serialization Functions //////////////////
-        public byte[] SerializeMSG(Mensaje msg)
-        {
-            float pos = msg.pos;
-            String word = msg.word;
-            Char letter = msg.letter;
+        //public byte[] SerializeMSG(Mensaje msg)
+        //{
+        //    float pos = msg.pos;
+        //    String word = msg.word;
+        //    Char letter = msg.letter;
 
-            return BuildMSG(pos, word, letter);
-        }
+        //    return BuildMSG(pos, word, letter);
+        //}
         public byte[] SerializeMSG(Message msg)
         {
             byte[] header = Header(msg.msgType);
-            byte[] body = BuildMSG( msg.from, msg.to, msg.pos,
-                                    msg.playerRotation,
-                                    msg.cameraRotation );
+            byte[] body = BuildMSG( msg.from, msg.to);
             return Combine(IntByte((Int64)8+header.Length+body.Length),header,body);
+        }
+        public byte[] SerializeMSG(LoginMsg msg)
+        {
+            byte[] header = Header(msg.msgType);
+            byte[] body = BuildMSG(msg.from);
+            return Combine(IntByte((Int64)8+header.Length + body.Length), header, body);
+        }
+        public byte[] SerializeMSG(LogoutMsg msg)
+        {
+            byte[] header = Header(msg.msgType);
+            byte[] body = BuildMSG(msg.from);
+            return Combine(IntByte((Int64)8 + header.Length + body.Length), header, body);
+        }
+        public byte[] SerializeMSG(MoveMsg msg)
+        {
+            byte[] header = Header(msg.msgType);
+            byte[] body = BuildMSG(msg.from, msg.pos,
+                                    msg.playerRotation,
+                                    msg.cameraRotation);
+            return Combine(IntByte((Int64)8 + header.Length + body.Length), header, body);
+        }
+        public byte[] SerializeMSG(MoveVRMsg msg)
+        {
+            byte[] header = Header(msg.msgType);
+            byte[] body = BuildMSG(msg.from);
+            return Combine(IntByte((Int64)8 + header.Length + body.Length), header, body);
+        }
+        public byte[] SerializeMSG(ShootMsg msg)
+        {
+            byte[] header = Header(msg.msgType);
+            byte[] body = BuildMSG(msg.from);
+            return Combine(IntByte((Int64)8 + header.Length + body.Length), header, body);
+        }
+        public byte[] SerializeMSG(SnapshotMsg msg)
+        {
+            byte[] header = Header(msg.msgType);
+            byte[] body = BuildMSG(msg.from, msg.to, msg.positions,
+                                    msg.rotation,
+                                    msg.camRotation);
+            return Combine(IntByte((Int64)8 + header.Length + body.Length), header, body);
+        }
+        public byte[] SerializeMSG(StructureChangeMsg msg)
+        {
+            byte[] header = Header(msg.msgType);
+            byte[] body = BuildMSG(msg.pos,msg.vertices,msg.triangles);
+            return Combine(IntByte((Int64)8 + header.Length + body.Length), header, body);
+        }
+        public byte[] SerializeMSG(AddPlayer msg)
+        {
+            byte[] header = Header(msg.msgType);
+            byte[] body = BuildMSG(msg.playerType);
+            return Combine(IntByte((Int64)8 + header.Length + body.Length), header, body);
+        }
+        public byte[] SerializeMSG(TestMsg msg)
+        {
+            byte[] header = Header(msg.msgType);
+            byte[] body = BuildMSG(msg.stuff);
+            return Combine(IntByte((Int64)8 + header.Length + body.Length), header, body);
+        }
+        public byte[] SerializeMSG(BigTest msg)
+        {
+            byte[] header = Header(msg.msgType);
+            byte[] body = BuildMSG(msg.userId, msg.positions, msg.rotation);
+            return Combine(IntByte((Int64)8 + header.Length + body.Length), header, body);
         }
 
         // Construction Processing Functions ///////////
@@ -106,24 +166,64 @@ namespace Test
         {
             return IntByte(sequence[msgType++]);
         }
-        private byte[] BuildMSG(float pos, String word, Char letter)
-        {
-            Int32 posi = (Int32)(pos * 1000);
+        //private byte[] BuildMSG(float pos, String word, Char letter)
+        //{
+        //    Int32 posi = (Int32)(pos * 1000);
 
-            byte[] posb = BitConverter.GetBytes(posi);
-            byte[] wordb = Encoding.ASCII.GetBytes(word);
-            byte letterb = (byte)letter;
+        //    byte[] posb = BitConverter.GetBytes(posi);
+        //    byte[] wordb = Encoding.ASCII.GetBytes(word);
+        //    byte letterb = (byte)letter;
 
-            return Combine(Combine(posb, wordb), letterb);
-        }
-        private byte[] BuildMSG(Int32 from, Int32 to, Vector3 pos, Quaternion pR, Quaternion cR)
+        //    return Combine(Combine(posb, wordb), letterb);
+        //}
+        private byte[] BuildMSG(Int32 from, Int32 to)
         {
             byte[] fromB = IntByte(from);
             byte[] toB = IntByte(to);
-            byte[] posB= Combine(FByte(pos.X), FByte(pos.Y), FByte(pos.X));
+            byte[] body = Combine(fromB,toB);
+            return body;
+        }
+        private byte[] BuildMSG(Int32 from) //also used for AddPlayer
+        {
+            return IntByte(from);
+        }
+        private byte[] BuildMSG(Int32 from, Vector3 pos, Quaternion pR, Quaternion cR)
+        {
+            byte[] fromB = IntByte(from);
+            byte[] posB = Combine(FByte(pos.X), FByte(pos.Y), FByte(pos.X));
             byte[] pRB = Combine(FByte(pR.W), FByte(pR.X), FByte(pR.Y), FByte(pR.Z));
             byte[] cRB = Combine(FByte(cR.W), FByte(cR.X), FByte(cR.Y), FByte(cR.Z));
-            byte[] body = Combine(fromB,toB, posB, pRB, cRB);
+            byte[] body = Combine(fromB, posB, pRB, cRB);
+            return body;
+        }
+        private byte[] BuildMSG(Int32 from, Int32 to, List<Vector3> pos, List<Quaternion> pR, List<Quaternion> cR)
+        {
+            byte[] fromB = IntByte(from);
+            byte[] toB = IntByte(to);
+            byte[] posB = Vec3Byte(pos);
+            byte[] pRB = Combine(FByte(pR.W), FByte(pR.X), FByte(pR.Y), FByte(pR.Z));
+            byte[] cRB = Combine(FByte(cR.W), FByte(cR.X), FByte(cR.Y), FByte(cR.Z));
+            byte[] body = Combine(fromB, toB, posB, pRB, cRB);
+            return body;
+        }
+        private byte[] BuildMSG(Vector3 pos, Vector3[] vertices, Int32[] triangles)
+        {
+            byte[] posB = Combine(FByte(pos.X), FByte(pos.Y), FByte(pos.X));
+            byte[] verticiesB = Vec3Byte(vertices);
+            byte[] trianglesB = IntByte(triangles);
+            byte[] body = Combine(posB, verticiesB, trianglesB);
+            return body;
+        }
+        private byte[] BuildMSG(Int32[] stuff)
+        {
+            return IntByte(stuff);
+        }
+        private byte[] BuildMSG(List<int> userID, List<Vector3> position, List<Quaternion> rotation)
+        {
+            byte[] userIDB = IntByte(userID);
+            byte[] positionB = Vec3Byte(position);
+            byte[] rotationB = QuatByte(rotation);
+            byte[] body = Combine(userIDB, positionB, rotationB);
             return body;
         }
 
@@ -150,26 +250,31 @@ namespace Test
             else
                 return null;
         }
+        public MoveMsg DeserializeMMSG(byte[] msg)
+        {
+            Int64 msgSize = checkMSG(msg);
+            if (msgSize != 0)
+            {
+                return GetMMSG(msg, msgSize);
+            }
+            return null;
+        }
 
         // Deconstruction Processing Functions
-        private Mensaje GetMSG(byte[] pos, byte[] word, byte[] letter)
-        {
-            float posf = (float)BitConverter.ToInt32(pos, 0) / 1000;
-            String wordS = Encoding.ASCII.GetString(word);
-            Char letterC = Convert.ToChar(letter[0]);
+        //private Mensaje GetMSG(byte[] pos, byte[] word, byte[] letter)
+        //{
+        //    float posf = (float)BitConverter.ToInt32(pos, 0) / 1000;
+        //    String wordS = Encoding.ASCII.GetString(word);
+        //    Char letterC = Convert.ToChar(letter[0]);
 
-            Mensaje msg = new Mensaje(posf, wordS, letterC);
+        //    Mensaje msg = new Mensaje(posf, wordS, letterC);
 
-            return msg;
-        }
+        //    return msg;
+        //}
         private Message GetMSG(byte[] msg, Int64 msgSize)
         {
             Console.WriteLine(msgSize);
-            byte msgType = msg[8];
-            //Console.WriteLine(Convert.ToString(msgType, 2).PadLeft(8, '0'));
-            Int32 type = 0x00 << 24 |
-                         0x00 << 16 |
-                         0x00 << 8 | msgType;
+            Int32 type = ByteInt32(msg[8]);
             byte[] seq_num = new byte[4];
             byte[] vars = new byte[msgSize-13];
 
@@ -180,10 +285,61 @@ namespace Test
             MSG.msgType = type;
             return MSG;
         }
+        private MoveMsg GetMMSG(byte[] msg, Int64 msgSize)
+        {
+            Int32 type = ByteInt32(msg[8]);
+            byte[] seq_num = new byte[4];
+            byte[] vars = new byte[msgSize - 13];
+
+            Array.Copy(msg, 9, seq_num, 0, 4);
+            Array.Copy(msg, 13, vars, 0, msgSize - 13);
+
+            MoveMsg MMSG = MMSGVars(vars);
+            MMSG.msgType = type;
+            return MMSG;
+        }
+        private LoginMsg GetLiMSG(byte[] msg, Int64 msgSize)
+        {
+            Int32 type = ByteInt32(msg[8]);
+            byte[] seq_num = new byte[4];
+            byte[] vars = new byte[msgSize - 13];
+
+            Array.Copy(msg, 9, seq_num, 0, 4);
+            Array.Copy(msg, 13, vars, 0, msgSize - 13);
+
+            LoginMsg LiMSG = LiMSGVars(vars);
+            LiMSG.msgType = type;
+            return LiMSG;
+        }
+        private LogoutMsg GetLoMSG(byte[] msg, Int64 msgSize)
+        {
+            Int32 type = ByteInt32(msg[8]);
+            byte[] seq_num = new byte[4];
+            byte[] vars = new byte[msgSize - 13];
+
+            Array.Copy(msg, 9, seq_num, 0, 4);
+            Array.Copy(msg, 13, vars, 0, msgSize - 13);
+
+            LogoutMsg LoMSG = LoMSGVars(vars);
+            LoMSG.msgType = type;
+            return LoMSG;
+        }
+        private MoveVRMsg GetMVRMSG(byte[] msg, Int64 msgSize)
+        {
+            Int32 type = ByteInt32(msg[8]);
+            byte[] seq_num = new byte[4];
+            byte[] vars = new byte[msgSize - 13];
+
+            Array.Copy(msg, 9, seq_num, 0, 4);
+            Array.Copy(msg, 13, vars, 0, msgSize - 13);
+
+            MoveMsg MVRMSG = MVRMSGVars(vars);
+            MMSG.msgType = type;
+            return MVRMSG;
+        }
         private Message MSGVars(byte[] vars)
         {
             byte[] from = new byte[4];
-            byte[] to = new byte[4];
             byte[] pos = new byte[12];
             byte[] pR = new byte[16];
             byte[] cR = new byte[16];
@@ -192,17 +348,13 @@ namespace Test
             Console.WriteLine(vars.Length);
             Array.Copy(vars, index, from, 0, 4);
             index += 4;
-            Array.Copy(vars, index, to, 0, 4);
-            index += 4;
             Array.Copy(vars, index, pos, 0, 12);
             index += 12;
             Array.Copy(vars, index, pR, 0, 16);
             index += 16;
             Array.Copy(vars, index, cR, 0, 16);
 
-            Message msg = new Message();
-            msg.from = ByteInt32(from);
-            msg.to = ByteInt32(to);
+            MoveMsg msg = new MoveMsg(ByteInt32(from));
             msg.pos = ByteVec3(pos);
             msg.playerRotation = ByteQuat(pR);
             msg.cameraRotation = ByteQuat(cR);
@@ -297,6 +449,18 @@ namespace Test
         {
             return BitConverter.GetBytes(num);
         }
+        public byte[] IntByte(Int32[] num)
+        {
+            return numB;
+        }
+        public byte[] IntByte(List<int> num)
+        {
+            //get list size
+            //byte[] numB = new byte[list_size * 4];
+            //for (int i=0; i<numB.Length; i + 4;
+            //  numB[i,i+1,i+2,i+3] = num.next();
+            return numB;
+        }
         public byte[] FByte(float num)
         {
             Int32 numi = (Int32)(num * 1000);
@@ -310,8 +474,27 @@ namespace Test
         {
             return Encoding.ASCII.GetBytes(letters);
         }
+        public byte[] Vec3Byte(Vector3[] vec)
+        {
+            return vecB;
+        }
+        public byte[] Vec3Byte(List<Vector3> vec)
+        {
+            return vecB;
+        }
+        public byte[] QuatByte(List<Quaternion> quat)
+        {
+            return quatB;
+        }
 
         // Byte to VarType Functions
+        public Int32 ByteInt32(byte bite)
+        {
+            Int32 type = 0x00 << 24 |
+                         0x00 << 16 |
+                         0x00 << 8 | bite;
+            return type;
+        }
         public Int32 ByteInt32(byte[] bite)
         {
             return BitConverter.ToInt32(bite, 0);
@@ -336,16 +519,16 @@ namespace Test
         public Vector3 ByteVec3(byte[] bite)
         {
             Console.WriteLine(bite.Length);
-            return new Vector3(ByteFloat(bite.Range(0, 3)),
+            return new Vector3(ByteFloat(bite.Range(8, 11)),
                                ByteFloat(bite.Range(4, 7)),
-                               ByteFloat(bite.Range(8, 11)));
+                               ByteFloat(bite.Range(0, 3)));
         }
         public Quaternion ByteQuat(byte[] bite)
         {
-            return new Quaternion(ByteFloat(bite.Range(0,3)),
-                               ByteFloat(bite.Range(4, 7)),
+            return new Quaternion(ByteFloat(bite.Range(12,15)),
                                ByteFloat(bite.Range(8, 11)),
-                               ByteFloat(bite.Range(12, 15)));
+                               ByteFloat(bite.Range(4, 7)),
+                               ByteFloat(bite.Range(0, 3)));
         }
 
         
