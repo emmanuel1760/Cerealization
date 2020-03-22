@@ -21,10 +21,6 @@ namespace Cerealization
     }
     public class Message
     {
-        public Vector3 pos;
-        public Quaternion playerRotation;
-        public Quaternion cameraRotation;
-
         protected DateTime time = DateTime.Now;
         public int from;
         public int to;

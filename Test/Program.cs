@@ -211,7 +211,11 @@ namespace Test
             byte[] posB = Combine(FByte(pos.X), FByte(pos.Y), FByte(pos.X));
             byte[] verticiesB = Vec3Byte(vertices);
             byte[] trianglesB = IntByte(triangles);
-            byte[] body = Combine(posB, verticiesB, trianglesB);
+            byte[] body = Combine(posB,
+                                  IntByte((Int32)verticiesB.Length),
+                                  verticiesB,
+                                  IntByte((Int32)trianglesB.Length),
+                                  trianglesB);
             return body;
         }
         private byte[] BuildMSG(Int32[] stuff)
@@ -285,6 +289,25 @@ namespace Test
             MSG.msgType = type;
             return MSG;
         }
+        private Message MSGVars(byte[] vars)
+        {
+            byte[] from = new byte[4];
+            byte[] to = new byte[4];
+
+            int index = 0;
+            Console.WriteLine(vars.Length);
+            Array.Copy(vars, index, from, 0, 4);
+            index += 4;
+            Array.Copy(vars, index, to, 0, 4);
+            index += 4;
+
+            Message msg = new Message();
+            msg.from = ByteInt32(from);
+            msg.to = ByteInt32(to);
+
+            return msg;
+        }
+        // Move MSG
         private MoveMsg GetMMSG(byte[] msg, Int64 msgSize)
         {
             Int32 type = ByteInt32(msg[8]);
@@ -298,46 +321,7 @@ namespace Test
             MMSG.msgType = type;
             return MMSG;
         }
-        private LoginMsg GetLiMSG(byte[] msg, Int64 msgSize)
-        {
-            Int32 type = ByteInt32(msg[8]);
-            byte[] seq_num = new byte[4];
-            byte[] vars = new byte[msgSize - 13];
-
-            Array.Copy(msg, 9, seq_num, 0, 4);
-            Array.Copy(msg, 13, vars, 0, msgSize - 13);
-
-            LoginMsg LiMSG = LiMSGVars(vars);
-            LiMSG.msgType = type;
-            return LiMSG;
-        }
-        private LogoutMsg GetLoMSG(byte[] msg, Int64 msgSize)
-        {
-            Int32 type = ByteInt32(msg[8]);
-            byte[] seq_num = new byte[4];
-            byte[] vars = new byte[msgSize - 13];
-
-            Array.Copy(msg, 9, seq_num, 0, 4);
-            Array.Copy(msg, 13, vars, 0, msgSize - 13);
-
-            LogoutMsg LoMSG = LoMSGVars(vars);
-            LoMSG.msgType = type;
-            return LoMSG;
-        }
-        private MoveVRMsg GetMVRMSG(byte[] msg, Int64 msgSize)
-        {
-            Int32 type = ByteInt32(msg[8]);
-            byte[] seq_num = new byte[4];
-            byte[] vars = new byte[msgSize - 13];
-
-            Array.Copy(msg, 9, seq_num, 0, 4);
-            Array.Copy(msg, 13, vars, 0, msgSize - 13);
-
-            MoveMsg MVRMSG = MVRMSGVars(vars);
-            MMSG.msgType = type;
-            return MVRMSG;
-        }
-        private Message MSGVars(byte[] vars)
+        private MoveMsg MMSGVars(byte[] vars)
         {
             byte[] from = new byte[4];
             byte[] pos = new byte[12];
@@ -358,7 +342,264 @@ namespace Test
             msg.pos = ByteVec3(pos);
             msg.playerRotation = ByteQuat(pR);
             msg.cameraRotation = ByteQuat(cR);
-          
+
+            return msg;
+        }
+        // Login MSG
+        private LoginMsg GetLiMSG(byte[] msg, Int64 msgSize)
+        {
+            Int32 type = ByteInt32(msg[8]);
+            byte[] seq_num = new byte[4];
+            byte[] vars = new byte[msgSize - 13];
+
+            Array.Copy(msg, 9, seq_num, 0, 4);
+            Array.Copy(msg, 13, vars, 0, msgSize - 13);
+
+            LoginMsg LiMSG = LiMSGVars(vars);
+            LiMSG.msgType = type;
+            return LiMSG;
+        }
+        private LoginMsg LiMSGVars(byte[] from)
+        {
+            LoginMsg msg = new LoginMsg(ByteInt32(from));
+
+            return msg;
+        }
+        // Logout MSG
+        private LogoutMsg GetLoMSG(byte[] msg, Int64 msgSize)
+        {
+            Int32 type = ByteInt32(msg[8]);
+            byte[] seq_num = new byte[4];
+            byte[] vars = new byte[msgSize - 13];
+
+            Array.Copy(msg, 9, seq_num, 0, 4);
+            Array.Copy(msg, 13, vars, 0, msgSize - 13);
+
+            LogoutMsg LoMSG = LoMSGVars(vars);
+            LoMSG.msgType = type;
+            return LoMSG;
+        }
+        private LogoutMsg LoMSGVars(byte[] from)
+        {
+            LogoutMsg msg = new LogoutMsg(ByteInt32(from));
+
+            return msg;
+        }
+        private MoveVRMsg GetMVRMSG(byte[] msg, Int64 msgSize)
+        {
+            Int32 type = ByteInt32(msg[8]);
+            byte[] seq_num = new byte[4];
+            byte[] vars = new byte[msgSize - 13];
+
+            Array.Copy(msg, 9, seq_num, 0, 4);
+            Array.Copy(msg, 13, vars, 0, msgSize - 13);
+
+            MoveVRMsg MVRMSG = MVRMSGVars(vars);
+            MVRMSG.msgType = type;
+            return MVRMSG;
+        }
+        private MoveVRMsg MVRMSGVars(byte[] from)
+        {
+            MoveVRMsg msg = new MoveVRMsg(ByteInt32(from));
+
+            return msg;
+        }
+        // Shoot MSG
+        private ShootMsg getSMSG(byte[] msg, Int64 msgSize)
+        {
+            Int32 type = ByteInt32(msg[8]);
+            byte[] seq_num = new byte[4];
+            byte[] vars = new byte[msgSize - 13];
+
+            Array.Copy(msg, 9, seq_num, 0, 4);
+            Array.Copy(msg, 13, vars, 0, msgSize - 13);
+
+            ShootMsg SMSG = SMSGVars(vars);
+            SMSG.msgType = type;
+            return SMSG;
+        }
+        private ShootMsg SMSGVars(byte[] from)
+        {
+            ShootMsg msg = new ShootMsg(ByteInt32(from));
+
+            return msg;
+        }
+        // Snapshot MSG
+        private SnapshotMsg GetSsMSG(byte[] msg, Int64 msgSize)
+        {
+            Int32 type = ByteInt32(msg[8]);
+            byte[] seq_num = new byte[4];
+            byte[] vars = new byte[msgSize - 13];
+
+            Array.Copy(msg, 9, seq_num, 0, 4);
+            Array.Copy(msg, 13, vars, 0, msgSize - 13);
+
+            SnapshotMsg SsMSG = SsMSGVars(vars);
+            SsMSG.msgType = type;
+            return SsMSG;
+        }
+        private SnapshotMsg SsMSGVars(byte[] vars) //needs work
+        {
+            byte[] from = new byte[4];
+            byte[] pos = new byte[12];
+            byte[] pR = new byte[16];
+            byte[] cR = new byte[16];
+
+            int index = 0;
+            Console.WriteLine(vars.Length);
+            Array.Copy(vars, index, from, 0, 4);
+            index += 4;
+            Array.Copy(vars, index, pos, 0, 12);
+            index += 12;
+            Array.Copy(vars, index, pR, 0, 16);
+            index += 16;
+            Array.Copy(vars, index, cR, 0, 16);
+
+            SnapshotMsg msg = new SnapshotMsg();
+
+            return msg;
+        }
+        // Structure Change MSG
+        private StructureChangeMsg GetSCMSG(byte[] msg, Int64 msgSize)
+        {
+            Int32 type = ByteInt32(msg[8]);
+            byte[] seq_num = new byte[4];
+            byte[] vars = new byte[msgSize - 13];
+
+            Array.Copy(msg, 9, seq_num, 0, 4);
+            Array.Copy(msg, 13, vars, 0, msgSize - 13);
+
+            StructureChangeMsg SCMSG = SCMSGVars(vars);
+            SCMSG.msgType = type;
+            return SCMSG;
+        }
+        private StructureChangeMsg SCMSGVars(byte[] vars) //needs testing
+        {
+            byte[] size = new byte[4];
+            byte[] pos = new byte[12];
+
+            int index = 0;
+            Console.WriteLine(vars.Length);
+
+            Array.Copy(vars, index, pos, 0, 12);
+            index += 12;
+
+            Array.Copy(vars, index, size, 0, 4);
+            index += 4;
+
+            Int32 vertSize = ByteInt32(size);
+            byte[] vertices = new byte[vertSize];
+
+            Array.Copy(vars, index, vertices, 0, vertSize);
+            index += vertSize;
+
+            Array.Copy(vars, index, size, 0, 4);
+            index += 4;
+
+            Int32 triSize = ByteInt32(size);
+            byte[] triangles = new byte[triSize];
+
+            Array.Copy(vars, index, triangles, 0, triSize);
+            index += triSize;
+
+            StructureChangeMsg msg = new StructureChangeMsg();
+
+            msg.pos = ByteVec3(pos);
+
+            msg.vertices = ByteVec3Array(vertices);
+
+
+            byte[][] tri = new byte[vars.Length / 4][];
+
+            Console.WriteLine(vars.Length);
+            for (int i = 0; i < vars.Length / 4; i += 4)
+            {
+                Array.Copy(vars, i, tri[i], 0, 4);
+            }
+
+            msg.triangles = ByteInt32(tri);
+            return msg;
+        }
+        // Add Player MSG
+        private AddPlayer GetAPMSG(byte[] msg, Int64 msgSize)
+        {
+            Int32 type = ByteInt32(msg[8]);
+            byte[] seq_num = new byte[4];
+            byte[] vars = new byte[msgSize - 13];
+
+            Array.Copy(msg, 9, seq_num, 0, 4);
+            Array.Copy(msg, 13, vars, 0, msgSize - 13);
+
+            AddPlayer APMSG = APMSGVars(vars);
+            APMSG.msgType = type;
+            return APMSG;
+        }
+        private AddPlayer APMSGVars(byte[] playerType)
+        {
+            AddPlayer msg = new AddPlayer(ByteInt32(playerType));
+
+            return msg;
+        }
+        // Test MSG
+        private TestMsg GetTMSG(byte[] msg, Int64 msgSize)
+        {
+            Int32 type = ByteInt32(msg[8]);
+            byte[] seq_num = new byte[4];
+            byte[] vars = new byte[msgSize - 13];
+
+            Array.Copy(msg, 9, seq_num, 0, 4);
+            Array.Copy(msg, 13, vars, 0, msgSize - 13);
+
+            TestMsg TMSG = TMSGVars(vars);
+            TMSG.msgType = type;
+            return TMSG;
+        }
+        private TestMsg TMSGVars(byte[] vars) //needs testing
+        {
+            byte[][] stuff = new byte[vars.Length/4][];
+
+            Console.WriteLine(vars.Length);
+            for (int index = 0; index < vars.Length / 4; index+=4) {
+                Array.Copy(vars, index, stuff[index], 0, 4);
+            }
+            
+            TestMsg msg = new TestMsg();
+            msg.stuff = ByteInt32(stuff);
+            return msg;
+        }
+        // Big Test MSG
+        private BigTest GetBTMSG(byte[] msg, Int64 msgSize)
+        {
+            Int32 type = ByteInt32(msg[8]);
+            byte[] seq_num = new byte[4];
+            byte[] vars = new byte[msgSize - 13];
+
+            Array.Copy(msg, 9, seq_num, 0, 4);
+            Array.Copy(msg, 13, vars, 0, msgSize - 13);
+
+            BigTest BTMSG = BTMSGVars(vars);
+            BTMSG.msgType = type;
+            return BTMSG;
+        }
+        private BigTest BTMSGVars(byte[] vars)
+        {
+            byte[] from = new byte[4];
+            byte[] pos = new byte[12];
+            byte[] pR = new byte[16];
+            byte[] cR = new byte[16];
+
+            int index = 0;
+            Console.WriteLine(vars.Length);
+            Array.Copy(vars, index, from, 0, 4);
+            index += 4;
+            Array.Copy(vars, index, pos, 0, 12);
+            index += 12;
+            Array.Copy(vars, index, pR, 0, 16);
+            index += 16;
+            Array.Copy(vars, index, cR, 0, 16);
+
+            BigTest msg = new BigTest();
+
             return msg;
         }
 
@@ -376,6 +617,16 @@ namespace Test
 
         // Byte Concatinating Functions ///////////////////
         //
+        // Bytes = Byte . Byte
+        public byte[] Combine(byte byte1, byte byte2, byte byte3, byte byte4)
+        {
+            byte[] newArray = new byte[4];
+            newArray[0] = byte1;
+            newArray[1] = byte2;
+            newArray[2] = byte3;
+            newArray[3] = byte4;
+            return newArray;
+        }
         // Bytes = Bytes . Byte
         public byte[] Combine(byte[] bArray, byte newByte)
         {
@@ -495,9 +746,23 @@ namespace Test
                          0x00 << 8 | bite;
             return type;
         }
+        public Int32 ByteInt32(byte bit3, byte bit2, byte bit1, byte bit0)
+        {
+            return BitConverter.ToInt32(Combine(bit3,bit2,bit1,bit0));
+        }
         public Int32 ByteInt32(byte[] bite)
         {
             return BitConverter.ToInt32(bite, 0);
+        }
+        public Int32[] ByteInt32(byte[][] bite)
+        {
+            Int32[] Int32Array = new Int32[bite.Length];
+            for (int i = 0; i < bite.Length / 4; i++)
+            {
+                Int32Array[i] = ByteInt32(bite[i][3], bite[i][2], bite[i][1], bite[i][0]);
+            }
+
+            return Int32Array;
         }
         public Int64 ByteInt64(byte[] bite)
         {
@@ -522,6 +787,28 @@ namespace Test
             return new Vector3(ByteFloat(bite.Range(8, 11)),
                                ByteFloat(bite.Range(4, 7)),
                                ByteFloat(bite.Range(0, 3)));
+        }
+        public Vector3[] ByteVec3Array(byte[] bite)
+        {
+            Vector3[] Vec3Array = new Vector3[bite.Length / 12];
+            int vecIndex = 0;
+            for (int index = 0; index < bite.Length; index += 12)
+            {
+                Vec3Array[vecIndex] = new Vector3(ByteFloat(Combine(bite[index + 3],
+                                                                    bite[index + 2],
+                                                                    bite[index + 1],
+                                                                    bite[index])),
+                                                  ByteFloat(Combine(bite[index + 7],
+                                                                    bite[index + 6],
+                                                                    bite[index + 5],
+                                                                    bite[index + 4])),
+                                                  ByteFloat(Combine(bite[index + 11],
+                                                                    bite[index + 10],
+                                                                    bite[index + 9],
+                                                                    bite[index + 8])));
+            }
+
+            return Vec3Array;
         }
         public Quaternion ByteQuat(byte[] bite)
         {
