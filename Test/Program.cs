@@ -196,14 +196,16 @@ namespace Test
             byte[] body = Combine(fromB, posB, pRB, cRB);
             return body;
         }
-        private byte[] BuildMSG(Int32 from, Int32 to, List<Vector3> pos, List<Quaternion> pR, List<Quaternion> cR)
+        private byte[] BuildMSG(Int32 from, Int32 to, List<Vector3> pos, List<Quaternion> pR, List<Quaternion> cR) //needs work
         {
             byte[] fromB = IntByte(from);
             byte[] toB = IntByte(to);
             byte[] posB = Vec3Byte(pos);
-            byte[] pRB = Combine(FByte(pR.W), FByte(pR.X), FByte(pR.Y), FByte(pR.Z));
-            byte[] cRB = Combine(FByte(cR.W), FByte(cR.X), FByte(cR.Y), FByte(cR.Z));
-            byte[] body = Combine(fromB, toB, posB, pRB, cRB);
+            byte[] pRB = QuatByte(pR);
+            byte[] pRBSize = IntByte(pRB.Length);
+            byte[] cRB = QuatByte(cR);
+            byte[] cRBSize = IntByte(cRB.Length);
+            byte[] body = Combine(fromB, toB, posB, pRBSize, pRB, cRBSize, cRB);
             return body;
         }
         private byte[] BuildMSG(Vector3 pos, Vector3[] vertices, Int32[] triangles)
@@ -232,18 +234,6 @@ namespace Test
         }
 
         // Deserialization Functions
-        //public Mensaje DeserializeMSG(byte[] msg)
-        //{
-        //    byte[] pos = new byte[4];
-        //    byte[] word = new byte[msg.Length - 5];
-        //    byte[] letter = new byte[1];
-
-        //    Array.Copy(msg, 0, pos, 0, 4);
-        //    Array.Copy(msg, 4, word, 0, msg.Length - 5);
-        //    Array.Copy(msg, msg.Length-1, letter, 0, 1);
-
-        //    return GetMSG(pos,word,letter);
-        //}
         public Message DeserializeMSG(byte[] msg)
         {
             Int64 msgSize = checkMSG(msg);
@@ -265,16 +255,6 @@ namespace Test
         }
 
         // Deconstruction Processing Functions
-        //private Mensaje GetMSG(byte[] pos, byte[] word, byte[] letter)
-        //{
-        //    float posf = (float)BitConverter.ToInt32(pos, 0) / 1000;
-        //    String wordS = Encoding.ASCII.GetString(word);
-        //    Char letterC = Convert.ToChar(letter[0]);
-
-        //    Mensaje msg = new Mensaje(posf, wordS, letterC);
-
-        //    return msg;
-        //}
         private Message GetMSG(byte[] msg, Int64 msgSize)
         {
             Console.WriteLine(msgSize);
@@ -405,7 +385,7 @@ namespace Test
             return msg;
         }
         // Shoot MSG
-        private ShootMsg getSMSG(byte[] msg, Int64 msgSize)
+        private ShootMsg GetSMSG(byte[] msg, Int64 msgSize)
         {
             Int32 type = ByteInt32(msg[8]);
             byte[] seq_num = new byte[4];
@@ -684,6 +664,23 @@ namespace Test
                               fourth.Length, fifth.Length);
             return ret;
         }
+        public static byte[] Combine(byte[] first, byte[] second, byte[] third, byte[] fourth, byte[] fifth, byte[] sixth, byte[] seventh)
+        {
+            byte[] ret = new byte[first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length + seventh.Length];
+            Buffer.BlockCopy(first, 0, ret, 0, first.Length);
+            Buffer.BlockCopy(second, 0, ret, first.Length, second.Length);
+            Buffer.BlockCopy(third, 0, ret, first.Length + second.Length,
+                             third.Length);
+            Buffer.BlockCopy(fourth, 0, ret, first.Length + second.Length + third.Length,
+                              fourth.Length);
+            Buffer.BlockCopy(fifth, 0, ret, first.Length + second.Length + third.Length +
+                              fourth.Length, fifth.Length);
+            Buffer.BlockCopy(sixth, 0, ret, first.Length + second.Length + third.Length +
+                               fourth.Length + fifth.Length, sixth.Length);
+            Buffer.BlockCopy(seventh, 0, ret, first.Length + second.Length + third.Length +
+                               fourth.Length + fifth.Length + sixth.Length, seventh.Length);
+            return ret;
+        }
 
         // Byte Convertion Functions
         //
@@ -725,16 +722,47 @@ namespace Test
         {
             return Encoding.ASCII.GetBytes(letters);
         }
+        public byte[] Vec3Byte(Vector3 vec)
+        {
+            byte[] vecB = Combine(FByte(vec.X),FByte(vec.Y),FByte(vec.Z));
+            
+            return vecB;
+        }
         public byte[] Vec3Byte(Vector3[] vec)
         {
+            byte[] vecB = new byte[vec.Length*12];
+            for (int index = 0; index < vecB.Length; index++)
+            {
+                vecB = Combine(FByte(vec[index].X),
+                               FByte(vec[index].Y),
+                               FByte(vec[index].Z));
+            }
             return vecB;
         }
-        public byte[] Vec3Byte(List<Vector3> vec)
+        public byte[] Vec3Byte(List<Vector3> vecList)
         {
+            byte[] vecB = new byte[vecList.Count*12];
+            foreach (Vector3 vec in vecList)
+            {
+                vecB = Combine(vecB,Vec3Byte(vec));
+            }
             return vecB;
         }
-        public byte[] QuatByte(List<Quaternion> quat)
+        public byte[] QuatByte(Quaternion quat)
         {
+            byte[] quatB = Combine(FByte(quat.W),
+                                   FByte(quat.X),
+                                   FByte(quat.Y),
+                                   FByte(quat.Z));
+            return quatB;
+        }
+        public byte[] QuatByte(List<Quaternion> quatList)
+        {
+            byte[] quatB = new byte[quatList.Count*16];
+            foreach (Quaternion quat in quatList)
+            {
+                quatB = Combine(quatB, QuatByte(quat));
+            }
             return quatB;
         }
 
