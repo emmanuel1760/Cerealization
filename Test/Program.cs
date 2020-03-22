@@ -699,6 +699,11 @@ namespace Test
         }
         public byte[] IntByte(Int32[] num)
         {
+            byte[] numB = new byte[num.Length];
+            for (int i = 0; i < numB.Length; i+=4)
+            {
+                numB = Combine(nnum.Range(i,i+3));
+            }
             return numB;
         }
         public byte[] IntByte(List<int> num)
